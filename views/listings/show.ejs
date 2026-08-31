@@ -145,7 +145,12 @@
         <div class="mb-4">
           <h4 class="fw-bold mb-3">Where you'll be</h4>
           <p class="text-muted"><%= listing.location %>, <%= listing.country %></p>
-          <div id="map"></div>
+          <div 
+            id="map" 
+            data-location="<%= (listing.location || '') + ', ' + (listing.country || '') %>"
+            data-title="<%= listing.title %>"
+            data-coordinates="<%= JSON.stringify(listing.geometry && listing.geometry.coordinates && listing.geometry.coordinates.length === 2 ? listing.geometry.coordinates : null) %>"
+          ></div>
         </div>
 
       </div>
@@ -163,8 +168,15 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-    const locationQuery = "<%= (listing.location || '') + ', ' + (listing.country || '') %>";
-    let coordinates = <%- JSON.stringify(listing.geometry && listing.geometry.coordinates && listing.geometry.coordinates.length === 2 ? listing.geometry.coordinates : null) %>;
+    const mapElement = document.getElementById('map');
+    const locationQuery = mapElement.dataset.location || '';
+    const listingTitle = mapElement.dataset.title || '';
+    let coordinates = null;
+    try {
+      coordinates = JSON.parse(mapElement.dataset.coordinates);
+    } catch (e) {
+      coordinates = null;
+    }
 
     function renderMap(lat, lng) {
       const map = L.map('map').setView([lat, lng], 10);
@@ -173,7 +185,7 @@
       }).addTo(map);
 
       L.marker([lat, lng]).addTo(map)
-        .bindPopup("<h5 class='m-0 fw-bold'><%= listing.title %></h5><p class='m-0 text-muted'>Exact location provided after booking</p>")
+        .bindPopup("<h5 class='m-0 fw-bold'>" + listingTitle + "</h5><p class='m-0 text-muted'>Exact location provided after booking</p>")
         .openPopup();
     }
 
@@ -182,9 +194,9 @@
       renderMap(coordinates[1], coordinates[0]);
     } else {
       // Dynamic fallback geocoding using the listing location name
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`)
-        .then(res => res.json())
-        .then(data => {
+      fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(locationQuery))
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
           if (data && data.length > 0) {
             renderMap(parseFloat(data[0].lat), parseFloat(data[0].lon));
           } else {
@@ -192,7 +204,7 @@
             renderMap(28.6139, 77.2090);
           }
         })
-        .catch(err => {
+        .catch(function(err) {
           console.log("Map location error:", err);
           renderMap(28.6139, 77.2090);
         });
