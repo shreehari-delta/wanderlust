@@ -11,6 +11,7 @@ const MongoStore = require("connect-mongo").default || require("connect-mongo");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
+const initData = require("./init/data.js");
 
 const dbUrl = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -19,12 +20,38 @@ main()
     console.log("connected to DB");
   })
   .catch((err) => {
-    console.log(err);
+    console.log("DB Connection Error:", err);
   });
 
 async function main() {
   await mongoose.connect(dbUrl);
+  
+  // Auto-seed sample listings if database has 0 listings
+  try {
+    const count = await Listing.countDocuments();
+    if (count === 0 && initData && initData.data) {
+      await Listing.insertMany(initData.data);
+      console.log("Initial sample listings successfully seeded into DB.");
+    }
+  } catch (err) {
+    console.log("Seeding error (listings):", err);
+  }
+
+  // Auto-seed default demo user if not existing
+  try {
+    const existingDemo = await User.findOne({ username: "demo" });
+    if (!existingDemo) {
+      const demoUser = new User({ email: "demo@example.com", username: "demo" });
+      await User.register(demoUser, "password123");
+      console.log("Default demo user registered into DB: demo / password123");
+    }
+  } catch (err) {
+    console.log("Seeding error (demo user):", err);
+  }
 }
+
+// Trust reverse proxy for HTTPS cookie persistence on Render
+app.set("trust proxy", 1);
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -196,9 +223,12 @@ app.post("/signup", async (req, res, next) => {
     let { username, email, password } = req.body;
     const newUser = new User({ email, username });
     const registeredUser = await User.register(newUser, password);
-    req.login(registeredUser, (err) => {
+    req.logIn(registeredUser, (err) => {
       if (err) return next(err);
-      res.redirect("/listings");
+      req.session.save((err) => {
+        if (err) return next(err);
+        res.redirect("/listings");
+      });
     });
   } catch (e) {
     res.redirect("/signup");
@@ -209,8 +239,20 @@ app.get("/login", (req, res) => {
   res.render("users/login.ejs");
 });
 
-app.post("/login", passport.authenticate("local", { failureRedirect: "/login" }), (req, res) => {
-  res.redirect("/listings");
+app.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.redirect("/login");
+    }
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      req.session.save((err) => {
+        if (err) return next(err);
+        return res.redirect("/listings");
+      });
+    });
+  })(req, res, next);
 });
 
 app.get("/logout", (req, res, next) => {
@@ -218,7 +260,9 @@ app.get("/logout", (req, res, next) => {
     if (err) {
       return next(err);
     }
-    res.redirect("/login");
+    req.session.save(() => {
+      res.redirect("/login");
+    });
   });
 });
 
