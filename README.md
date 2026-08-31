@@ -1,5 +1,8 @@
 # 🌍 Wanderlust — Full-Stack Vacation Rental Web Platform
 
+[![Live Demo](https://img.shields.io/badge/Live-Demo%20on%20Render-brightgreen?style=for-the-badge&logo=render)](https://wanderlust-1-of7f.onrender.com)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/shreehari-delta/wanderlust)
+
 [![Node.js](https://img.shields.io/badge/Node.js-v18+-green.svg)](https://nodejs.org/)
 [![Express.js](https://img.shields.io/badge/Express.js-v5.0+-lightgrey.svg)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green.svg)](https://www.mongodb.com/atlas)
@@ -8,6 +11,20 @@
 [![License](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 
 Wanderlust is a production-ready, full-stack vacation rental platform inspired by Airbnb. Built with Node.js, Express.js, MongoDB Atlas, and EJS, following the MVC (Model-View-Controller) architectural pattern. It features user authentication, dynamic geospatial maps, interactive reviews with star ratings, responsive category filtering, and real-time tax calculation.
+
+🔗 **Live Deployment:** [https://wanderlust-1-of7f.onrender.com](https://wanderlust-1-of7f.onrender.com)
+
+---
+
+## 🔑 Demo Login Credentials
+
+For testing and grading the live application, you can use the pre-configured demo account below, or register a new one at `/signup`:
+
+| Field | Value |
+|---|---|
+| **Username** | `demo` |
+| **Password** | `password123` |
+| **Login URL** | [https://wanderlust-1-of7f.onrender.com/login](https://wanderlust-1-of7f.onrender.com/login) |
 
 ---
 
@@ -87,7 +104,7 @@ Wanderlust is a production-ready, full-stack vacation rental platform inspired b
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/<your-username>/wanderlust.git
+   git clone https://github.com/shreehari-delta/wanderlust.git
    cd wanderlust
    ```
 
