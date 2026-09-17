@@ -266,6 +266,14 @@ app.get("/logout", (req, res, next) => {
   });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Express Error Handler caught:", err);
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(statusCode).send(message);
+});
+
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   console.log(`server is listening to port ${port}`);
